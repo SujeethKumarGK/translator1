@@ -1,97 +1,789 @@
-# import streamlit as st
-# import pandas as pd
-#
-# def main():
-#     st.title('Iris Eda app ith streamlit')
-#     st.subheader('Streamli is cool')
-#
-#
-#
-#
-#
-#
-#
-#
-# if __name__=="__main__":
-#     main()
-
 import streamlit as st
-import datetime as dt
+import cv2 as cv
+import numpy as np
+from googletrans import Translator
 from gtts import gTTS
+import argparse
+from PIL import Image,ImageEnhance
+from IPython.display import Audio
+from PIL import ImageDraw
+from  easyocr import Reader
+import detectlanguage
 import speech_recognition as sr
-from google_trans_new import google_translator
-from PIL import Image
-from deep_translator import GoogleTranslator
+from deep_translator import (GoogleTranslator,MicrosoftTranslator,PonsTranslator,LingueeTranslator,MyMemoryTranslator,YandexTranslator,DeepL,QCRI,single_detection,batch_detection)
 langs_dict = GoogleTranslator.get_supported_languages(as_dict=True)
-
-# trans = google_translator()
-# input_text = ""
-
-#image for top of the screen
-
-# image = Image.open('translate.png')
-# st.image(image)
-
-#date display
-
-now = dt.date.today()
-
-#Text Display
-
-st.write(f"Today is {now}")
-st.write(f"Translate your thoughts.")
-
-input_text = st.text_input('Enter whatever')
-
-#Translates user input and creates text to speech audio
-
-if st.button('Translate'):
-    to_translate = input_text
-    translated = GoogleTranslator(source='auto', target='kn').translate(to_translate)
-    st.write(translated)
-    st.success(translated)
-    speech = gTTS(text = translated, lang = 'kn', slow = False)
-    speech.save('user_trans.mp3')
-    audio_file = open('user_trans.mp3', 'rb')
-    audio_bytes = audio_file.read()
-    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+ap = argparse.ArgumentParser()
+translator = Translator()
+args = vars(ap.parse_args())
+# print(translator.detect('この文章は日本語で書かれました。'))
+def draw_boxes(image, bounds, color='yellow',width=2): # function to draw bounding boxes around the text
+    draw=ImageDraw.Draw(image)
+    for bound in bounds:
+        p0, p1, p2, p3 = bound[0]
+        draw.line([*p0, *p1, *p2, *p3, *p0], fill=color, width=width)
+    return image
 
 
-path = st.file_uploader("Or upload audio to translate")
+def main():
+    st.title('Text To Speech')
+    st.subheader('Using streamlit and opencv')
+    choice=st.sidebar.selectbox('Select Activity',['Text to Speech','Translation','About Us'])
 
-#Translates user audio and creates text to speech audio
+    if choice=='Text to Speech':
+        image_file = st.file_uploader("Upload Image",type=['jpg','png','jpeg'])
+        if image_file is not None:
+            image=Image.open(image_file)
+            size=(240,240)
+            image=image.resize(size)
+            # print(image_file)
+            st.image(image)
+        list_lang=st.sidebar.selectbox("select language",['English','Kannada','Telugu','Tamil','Hindi','Japanese','French'])
+        dest_lang=st.sidebar.selectbox('Select Destination to change',['en','kn','ta','te','hi','ja','fr'])
+        print(langs_dict)
+        if list_lang=='English':
+            if st.button('Process'):
+                # st.write(text_comb)
+                # txt=translator.detect('この文章は日本語で書かれました。')
+                image=Image.open(image_file)
+                lang='en'
+                reader = Reader([lang])
+                bounds=reader.readtext(image, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+                draw_boxes(image,bounds)
+                text_list=reader.readtext(image,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+                text_comb=' '.join(text_list)
+                if dest_lang=='en':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'en', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='kn':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'kn', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='ta':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'ta', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='hi':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'hi', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='te':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'te', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='ja':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'ja', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='fr':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'fr', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+        if list_lang=='Kannada':
+                if st.button('Process'):
+                    # st.write(text_comb)
+                    # txt=translator.detect('この文章は日本語で書かれました。')
+                    image=Image.open(image_file)
+                    lang='kn'
+                    reader = Reader([lang])
+                    bounds=reader.readtext(image, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+                    draw_boxes(image,bounds)
+                    text_list=reader.readtext(image,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+                    text_comb=' '.join(text_list)
+                    if dest_lang=='en':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'en', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='kn':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'kn', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='ta':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'ta', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='hi':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'hi', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='te':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'te', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='ja':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'ja', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='fr':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'fr', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+        if list_lang=='Telugu':
+                if st.button('Process'):
+                    # st.write(text_comb)
+                    # txt=translator.detect('この文章は日本語で書かれました。')
+                    image=Image.open(image_file)
+                    lang='te'
+                    reader = Reader([lang])
+                    bounds=reader.readtext(image, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+                    draw_boxes(image,bounds)
+                    text_list=reader.readtext(image,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+                    text_comb=' '.join(text_list)
+                    if dest_lang=='en':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'en', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='kn':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'kn', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='ta':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'ta', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='hi':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'hi', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='te':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'te', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='ja':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'ja', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='fr':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'fr', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+        if list_lang=='Tamil':
+                if st.button('Process'):
+                    # st.write(text_comb)
+                    # txt=translator.detect('この文章は日本語で書かれました。')
+                    image=Image.open(image_file)
+                    lang='ta'
+                    reader = Reader([lang])
+                    bounds=reader.readtext(image, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+                    draw_boxes(image,bounds)
+                    text_list=reader.readtext(image,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+                    text_comb=' '.join(text_list)
+                    if dest_lang=='en':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'en', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='kn':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'kn', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='ta':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'ta', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='hi':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'hi', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='te':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'te', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='ja':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'ja', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='fr':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'fr', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+        if list_lang=='Hindi':
+                if st.button('Process'):
+                    # st.write(text_comb)
+                    # txt=translator.detect('この文章は日本語で書かれました。')
+                    image=Image.open(image_file)
+                    lang='hi'
+                    reader = Reader([lang])
+                    bounds=reader.readtext(image, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+                    draw_boxes(image,bounds)
+                    text_list=reader.readtext(image,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+                    text_comb=' '.join(text_list)
+                    if dest_lang=='en':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'en', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='kn':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'kn', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='ta':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'ta', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='hi':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'hi', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='te':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'te', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='ja':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'ja', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='fr':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'fr', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+        if list_lang=='Japanese':
+                if st.button('Process'):
+                    # st.write(text_comb)
+                    # txt=translator.detect('この文章は日本語で書かれました。')
+                    image=Image.open(image_file)
+                    lang='ja'
+                    reader = Reader([lang])
+                    bounds=reader.readtext(image, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+                    draw_boxes(image,bounds)
+                    text_list=reader.readtext(image,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+                    text_comb=' '.join(text_list)
+                    if dest_lang=='en':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'en', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='kn':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'kn', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='ta':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'ta', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='hi':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'hi', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='te':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'te', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='ja':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'ja', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+                    if dest_lang=='fr':
+                        translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                        lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                        # st.write(translated)
+                        st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                        speech = gTTS(text = text_comb, lang = 'fr', slow = False)
+                        speech.save('user_trans.mp3')
+                        audio_file = open('user_trans.mp3', 'rb')
+                        audio_bytes = audio_file.read()
+                        st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                        st.success(translated)
+                        st.image(image)
+        if list_lang=='French':
+            if st.button('Process'):
+                # st.write(text_comb)
+                # txt=translator.detect('この文章は日本語で書かれました。')
+                image=Image.open(image_file)
+                lang='ja'
+                reader = Reader([lang])
+                bounds=reader.readtext(image, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+                draw_boxes(image,bounds)
+                text_list=reader.readtext(image,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+                text_comb=' '.join(text_list)
+                if dest_lang=='en':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'en', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='kn':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'kn', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='ta':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'ta', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='hi':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'hi', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='te':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'te', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='ja':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'ja', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
+                if dest_lang=='fr':
+                    translated = GoogleTranslator(source='auto', target=dest_lang).translate(text_comb)
+                    lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+                    # st.write(translated)
+                    st.write('The detected language is  '+ lang + ' is converted to '+dest_lang)
+                    speech = gTTS(text = text_comb, lang = 'fr', slow = False)
+                    speech.save('user_trans.mp3')
+                    audio_file = open('user_trans.mp3', 'rb')
+                    audio_bytes = audio_file.read()
+                    st.audio(audio_bytes, format='audio/ogg',start_time=0)
+                    st.success(translated)
+                    st.image(image)
 
-if st.button('Translate audio'):
-
-    # Initialize recognizer class (for recognizing the speech)
-    r = sr.Recognizer()
-
-    # Reading Audio file as source
-    # listening the audio file and store in audio_text variable
-
-    with sr.AudioFile(path) as source:
-
-        audio_text = r.listen(source)
-
-        # recoginize_() method will throw a request error if the API is unreachable, hence using exception handling
-        try:
-
-            # using google speech recognition
-            text = r.recognize_google(audio_text)
-            print('Converting audio transcripts into text ...')
-            input_text = st.write(text)
-            result = trans.translate(text, lang_tgt = 'ja')
-            st.success(result)
-            speech = gTTS(text = result, lang = 'ja', slow = False)
-            speech.save('trans.mp3')
-            audio_file = open('trans.mp3', 'rb')
-            audio_bytes = audio_file.read()
-            st.audio(audio_bytes, format='audio/ogg',start_time=0)
-
-        except:
-            st.write('Sorry.. run again...')
 
 
 
 
 
+
+        # if list_lang=="kannada":
+        #      lang='kn'
+        #      reader = Reader([lang])
+        #      bounds=reader.readtext(image, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+        #      bounds=reader.readtext(image, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+        #      draw_boxes(image,bounds)
+        #      image=image.resize((240,240))
+        #      text_list=reader.readtext(image,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+        #      text_comb=' '.join(text_list)
+        #      if st.button('Process'):
+        #          # print(bounds)
+        #          translated = GoogleTranslator(source='auto', target='en').translate(text_comb)
+        #          lang = single_detection(text_comb, api_key='0a0cb5911f0575c03510ceabe182c2ad')
+        #          # st.write(translated)
+        #          st.write('The detected language is  '+lang)
+        #          st.success(translated)
+        #          st.image(image)
+        #
+
+        # if list_lang=="Telugu":
+        #     lang='te'
+        #     reader = easyocr.Reader([lang])
+        #     image1=Image.open(image_file)
+        #     if st.button('Process'):
+        #         bounds=reader.readtext(image1, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+        #         # print(bounds)
+        #         draw_boxes(image1,bounds)
+        #         image1=image1.resize((240,240))
+        #         text_list=reader.readtext(image1,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+        #         text_comb=' '.join(text_list)
+        #         translator = Translator()
+        #         st.write("the detected language is"+translator.detect(text_comb))
+        #         st.image(image1)
+        # if list_lang=="Tamil":
+        #     lang='ta'
+        #     reader = easyocr.Reader([lang])
+        #     image1=Image.open(image_file)
+        #     if st.button('Process'):
+        #         bounds=reader.readtext(image1, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+        #         # print(bounds)
+        #         draw_boxes(image1,bounds)
+        #         image1=image1.resize((240,240))
+        #         text_list=reader.readtext(image1,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+        #         text_comb=' '.join(text_list)
+        #         translator = Translator()
+        #         st.write("the detected language is"+translator.detect(text_comb))
+        #         st.image(image1)
+        # if list_lang=="Japanese":
+        #     lang='ja'
+        #     reader = easyocr.Reader([lang])
+        #     image1=Image.open(image_file)
+        #     if st.button('Process'):
+        #         bounds=reader.readtext(image1, add_margin=0.3,width_ths=2.0,link_threshold=0.8,decoder='beamsearch',blocklist='=-')
+        #         # print(bounds)
+        #         draw_boxes(image1,bounds)
+        #         image1=image1.resize((240,240))
+        #         text_list=reader.readtext(image1,link_threshold=0.8,add_margin=0.55,width_ths=0.7,decoder='beamsearch',blocklist='=-',detail=0)
+        #         text_comb=' '.join(text_list)
+        #         translator = Translator()
+        #         st.write("the detected language is"+translator.detect(text_comb))
+        #         st.image(image1)
+        #
+        #
+        #
+
+
+
+
+
+
+
+
+
+if __name__=="__main__":
+    main()
