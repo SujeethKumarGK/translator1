@@ -50,7 +50,7 @@ if st.button('Translate'):
     translated = GoogleTranslator(source='auto', target='kn').translate(to_translate)
     st.write(translated)
     st.success(translated)
-    speech = gTTS(text = translated, lang = 'en', slow = False)
+    speech = gTTS(text = translated, lang = 'kn', slow = False)
     speech.save('user_trans.mp3')
     audio_file = open('user_trans.mp3', 'rb')
     audio_bytes = audio_file.read()
